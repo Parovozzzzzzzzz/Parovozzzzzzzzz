@@ -100,12 +100,28 @@ export default function Menu() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let alive = true;
+
     const loadMenu = async () => {
       const data = await fetchMenu();
+      if (!alive) return;
       setMenuItems(data);
       setLoading(false);
     };
+
     loadMenu();
+    const interval = setInterval(loadMenu, 30000);
+
+    const onVisibility = () => {
+      if (!document.hidden) loadMenu();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      alive = false;
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, []);
 
   const filtered = menuItems.filter((i) => i.category === activeCategory);

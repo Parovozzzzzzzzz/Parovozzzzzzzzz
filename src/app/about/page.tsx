@@ -2,7 +2,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Про нас | SushiMAMA",
-  description: "Дізнайтеся більше про нашу команду та нашу місію доставляти найсмачніші суші в Берліні.",
+  description: "Дізнайтеся більше про нашу команду та нашу місію доставляти найсмачніші суші у Франкфурті-на-Одері.",
 };
 
 export default function AboutPage() {
@@ -15,7 +15,7 @@ export default function AboutPage() {
         
         <div className="prose prose-invert max-w-none mb-16">
           <p className="text-xl text-muted-foreground leading-relaxed text-center">
-            <span className="text-white font-bold">SushiMAMA</span> — це не просто доставка їжі. Це справжня любов до японської кухні та повага до традицій, поєднана з сучасним ритмом життя Берліна.
+            <span className="text-white font-bold">SushiMAMA</span> — це не просто доставка їжі. Це справжня любов до японської кухні та повага до традицій, поєднана з сучасним ритмом життя Франкфурта-на-Одері.
           </p>
         </div>
 
