@@ -39,6 +39,8 @@ export default function AdminDashboard() {
 
   const [settings, setSettings] = useState({ phoneNumber: "" });
   const [settingsLoading, setSettingsLoading] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
+  const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     const auth = document.cookie
@@ -87,6 +89,31 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleImageUpload = async (file: File) => {
+    const previewUrl = URL.createObjectURL(file);
+    setLocalImagePreview(previewUrl);
+    setImageUploading(true);
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formDataUpload,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+
+      setFormData((prev) => ({ ...prev, image: data.url }));
+      toast.success("Фото завантажено!");
+    } catch {
+      toast.error("Не вдалося завантажити фото");
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
   const handleLogout = () => {
     document.cookie = "admin_auth=; path=/; max-age=0";
     router.push("/admin/login");
@@ -108,6 +135,7 @@ export default function AdminDashboard() {
         setIsEditing(null);
         setIsAdding(false);
         setFormData({ name: "", description: "", price: 0, image: "", category: "Роли" });
+        setLocalImagePreview(null);
         loadData();
       }
     } catch {
@@ -144,6 +172,7 @@ export default function AdminDashboard() {
   const startEdit = (item: MenuItem) => {
     setIsEditing(item);
     setFormData(item);
+    setLocalImagePreview(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -213,7 +242,7 @@ export default function AdminDashboard() {
               <Card className="border-primary/50 shadow-2xl bg-card">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="text-2xl font-black">{isEditing ? "Редагувати" : "Додати нову позицію"}</CardTitle>
-                  <Button variant="ghost" className="text-muted-foreground" onClick={() => { setIsEditing(null); setIsAdding(false); }}>Скасувати</Button>
+                  <Button variant="ghost" className="text-muted-foreground" onClick={() => { setIsEditing(null); setIsAdding(false); setLocalImagePreview(null); }}>Скасувати</Button>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSave} className="grid md:grid-cols-2 gap-8">
@@ -252,12 +281,40 @@ export default function AdminDashboard() {
                         <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} required className="h-[76px]" />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-semibold">Посилання на фото</label>
-                        <Input value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} placeholder="https://unsplash..." required />
+                        <label className="text-sm font-semibold">Фото страви</label>
+                        <Input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp,image/gif"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleImageUpload(file);
+                          }}
+                          disabled={imageUploading}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          {imageUploading ? "Завантаження фото..." : "Або вставте пряме посилання на фото нижче"}
+                        </p>
+                        <Input
+                          value={formData.image}
+                          onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                          placeholder="https://... або /uploads/..."
+                          required
+                        />
+                        {(localImagePreview || formData.image) && (
+                          <div className="relative w-full h-40 rounded-lg overflow-hidden border border-border/50 bg-muted/20">
+                            <Image
+                              src={localImagePreview || formData.image || "/next.svg"}
+                              alt="Попередній перегляд"
+                              fill
+                              className="object-cover"
+                              unoptimized
+                            />
+                          </div>
+                        )}
                       </div>
-                      <Button type="submit" className="w-full h-12 text-lg font-bold gap-2 mt-4 shadow-lg shadow-primary/20">
+                      <Button type="submit" disabled={imageUploading} className="w-full h-12 text-lg font-bold gap-2 mt-4 shadow-lg shadow-primary/20">
                         {isEditing ? <CheckCircle2 className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-                        {isEditing ? "Зберегти" : "Додати в меню"}
+                        {imageUploading ? "Завантаження фото..." : isEditing ? "Зберегти" : "Додати в меню"}
                       </Button>
                     </div>
                   </form>
@@ -296,7 +353,7 @@ export default function AdminDashboard() {
               <Card key={item.id} className="border-border/50 group hover:border-primary/20 transition-all overflow-hidden bg-card/30">
                 <CardContent className="p-4 flex gap-4">
                   <div className="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 border border-border/50">
-                    <Image src={item.image} alt={item.name} fill className="object-cover" />
+                    <Image src={item.image} alt={item.name} fill className="object-cover" unoptimized />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">

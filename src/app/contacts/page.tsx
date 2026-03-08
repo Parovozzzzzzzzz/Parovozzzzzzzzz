@@ -1,17 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchSettings } from "@/lib/data";
+import { fetchSettings, formatPhoneNumber } from "@/lib/data";
 
 export default function ContactsPage() {
   const [phoneNumber, setPhoneNumber] = useState("+380 93 484 3757");
   const [waLink, setWaLink] = useState("https://wa.me/380934843757");
 
   useEffect(() => {
-    fetchSettings().then(s => {
-      setPhoneNumber(`+${s.phoneNumber.slice(0, 3)} ${s.phoneNumber.slice(3, 5)} ${s.phoneNumber.slice(5, 8)} ${s.phoneNumber.slice(8)}`);
-      setWaLink(`https://wa.me/${s.phoneNumber}`);
-    });
+    let alive = true;
+
+    const loadPhone = async () => {
+      const settings = await fetchSettings();
+      if (!alive) return;
+      setPhoneNumber(formatPhoneNumber(settings.phoneNumber));
+      setWaLink(`https://wa.me/${settings.phoneNumber}`);
+    };
+
+    loadPhone();
+    const interval = setInterval(loadPhone, 30000);
+    return () => {
+      alive = false;
+      clearInterval(interval);
+    };
   }, []);
 
   return (
@@ -45,7 +56,7 @@ export default function ContactsPage() {
             {
               icon: "📍",
               title: "Місто",
-              text: "Берлін, Німеччина",
+              text: "Франкфурт-на-Одері, Німеччина",
               link: null,
               linkLabel: null,
             },

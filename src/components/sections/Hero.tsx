@@ -29,7 +29,7 @@ export default function Hero() {
           transition={{ duration: 0.6 }}
         >
           <div className="inline-block mb-4 text-sm font-medium px-4 py-1.5 rounded-full border border-primary/50 text-primary bg-primary/10 tracking-widest uppercase">
-            Берлін • Доставка 30 хв
+            Франкфурт-на-Одері • Доставка 30 хв
           </div>
         </motion.div>
 
