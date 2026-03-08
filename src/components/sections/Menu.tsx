@@ -110,18 +110,38 @@ export default function Menu() {
       setLoading(false);
     };
 
-    loadMenu();
-    const interval = setInterval(loadMenu, 30000);
-
     const onVisibility = () => {
       if (!document.hidden) loadMenu();
     };
+
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === "menu_force_refresh") {
+        loadMenu();
+      }
+    };
+
+    let channel: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      channel = new BroadcastChannel("menu-updates");
+      channel.onmessage = (event) => {
+        if (event.data?.type === "force-refresh") {
+          loadMenu();
+        }
+      };
+    }
+
+    loadMenu();
+    const interval = setInterval(loadMenu, 30000);
+
     document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("storage", onStorage);
 
     return () => {
       alive = false;
       clearInterval(interval);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("storage", onStorage);
+      channel?.close();
     };
   }, []);
 

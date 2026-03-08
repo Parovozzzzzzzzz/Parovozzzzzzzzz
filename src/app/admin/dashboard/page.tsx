@@ -41,6 +41,7 @@ export default function AdminDashboard() {
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
+  const [forceRefreshing, setForceRefreshing] = useState(false);
 
   useEffect(() => {
     const auth = document.cookie
@@ -111,6 +112,35 @@ export default function AdminDashboard() {
       toast.error("Не вдалося завантажити фото");
     } finally {
       setImageUploading(false);
+    }
+  };
+
+  const handleForceRefresh = async () => {
+    setForceRefreshing(true);
+    try {
+      const menuVersion = Date.now().toString();
+      const res = await fetch("/api/menu", {
+        method: "POST",
+        body: JSON.stringify({ settings: { menuVersion } }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!res.ok) throw new Error("Failed to force refresh");
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("menu_force_refresh", menuVersion);
+        if ("BroadcastChannel" in window) {
+          const channel = new BroadcastChannel("menu-updates");
+          channel.postMessage({ type: "force-refresh", menuVersion });
+          channel.close();
+        }
+      }
+
+      toast.success("Сигнал оновлення меню відправлено на головний сайт");
+    } catch {
+      toast.error("Не вдалося примусово оновити меню");
+    } finally {
+      setForceRefreshing(false);
     }
   };
 
@@ -335,10 +365,21 @@ export default function AdminDashboard() {
                 <p className="text-muted-foreground text-sm">{items.length} позицій у списку</p>
               </div>
             </div>
-            <Button onClick={() => setIsAdding(true)} className="h-12 px-6 rounded-xl font-bold gap-2">
-              <Plus className="w-5 h-5" />
-              Нова страва
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                onClick={handleForceRefresh}
+                disabled={forceRefreshing}
+                className="h-12 px-6 rounded-xl font-bold gap-2"
+              >
+                <Loader2 className={`w-5 h-5 ${forceRefreshing ? "animate-spin" : ""}`} />
+                {forceRefreshing ? "Оновлення..." : "Оновити меню на сайті"}
+              </Button>
+              <Button onClick={() => setIsAdding(true)} className="h-12 px-6 rounded-xl font-bold gap-2">
+                <Plus className="w-5 h-5" />
+                Нова страва
+              </Button>
+            </div>
           </div>
         )}
 

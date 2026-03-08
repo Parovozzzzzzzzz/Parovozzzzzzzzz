@@ -9,6 +9,7 @@ interface MenuData {
   items: MenuItem[];
   settings: {
     phoneNumber: string;
+    menuVersion?: string;
   };
 }
 
@@ -18,7 +19,7 @@ async function readMenuData(): Promise<MenuData> {
     return JSON.parse(data);
   } catch (error) {
     console.error("Error reading menu file:", error);
-    return { items: [], settings: { phoneNumber: "380934843757" } };
+    return { items: [], settings: { phoneNumber: "380934843757", menuVersion: "0" } };
   }
 }
 

@@ -73,3 +73,19 @@ export function formatPhoneNumber(raw: string): string {
   }
   return `+${digits}`;
 }
+
+export interface SiteSettings {
+  phoneNumber: string;
+  menuVersion?: string;
+}
+
+export async function fetchSiteSettings(): Promise<SiteSettings> {
+  try {
+    const res = await fetch("/api/menu", { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to fetch settings");
+    const data = await res.json();
+    return data.settings || { phoneNumber: "380934843757", menuVersion: "0" };
+  } catch {
+    return { phoneNumber: "380934843757", menuVersion: "0" };
+  }
+}
