@@ -49,7 +49,7 @@ function DishCard({ item }: { item: MenuItem }) {
         <p className="text-muted-foreground text-sm mb-4 flex-1 leading-relaxed">{item.description}</p>
 
         <div className="flex items-center justify-between mt-auto">
-          <span className="text-primary font-black text-2xl">{item.price} грн</span>
+          <span className="text-primary font-black text-2xl">{item.price} €</span>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 border border-border rounded-full p-0.5">
               <button
