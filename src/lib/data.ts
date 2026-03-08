@@ -54,6 +54,17 @@ export async function fetchMenu(): Promise<MenuItem[]> {
   }
 }
 
+export async function tryFetchMenu(): Promise<MenuItem[] | null> {
+  try {
+    const res = await fetch("/api/menu", { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to fetch menu");
+    const data = await res.json();
+    return data.items || [];
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchSettings(): Promise<{ phoneNumber: string }> {
   const settings = await fetchSiteSettings();
   return { phoneNumber: settings.phoneNumber };
