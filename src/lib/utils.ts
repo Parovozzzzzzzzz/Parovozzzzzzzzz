@@ -19,15 +19,22 @@ export function normalizeImageSrc(src: string): string {
   if (normalizedSlashes.startsWith("http://") || normalizedSlashes.startsWith("https://")) {
     try {
       const parsedUrl = new URL(normalizedSlashes);
-      return parsedUrl.pathname.startsWith("/uploads/")
-        ? `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`
-        : normalizedSlashes;
+      const uploadPathMatch = parsedUrl.pathname.match(/(?:^|\/)uploads\/.+/);
+      if (!uploadPathMatch) return normalizedSlashes;
+
+      return `/${uploadPathMatch[0].replace(/^\/+/, "")}${parsedUrl.search}${parsedUrl.hash}`;
     } catch {
       return normalizedSlashes;
     }
   }
 
   const withoutDotPrefix = normalizedSlashes.replace(/^\.\//, "");
+  const uploadPathMatch = withoutDotPrefix.match(/(?:^|\/)uploads\/.+/);
+
+  if (uploadPathMatch) {
+    return `/${uploadPathMatch[0].replace(/^\/+/, "")}`;
+  }
+
   const withoutPublicPrefix = withoutDotPrefix.replace(/^public\//, "");
   const withSingleLeadingSlash = withoutPublicPrefix.startsWith("/")
     ? withoutPublicPrefix
