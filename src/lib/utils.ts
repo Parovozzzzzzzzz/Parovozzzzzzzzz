@@ -11,22 +11,27 @@ export function normalizeImageSrc(src?: string | null): string {
   const trimmed = src.trim();
   if (!trimmed) return "/next.svg";
 
-  const normalizedSlashes = trimmed.replace(/\\/g, "/");
+  // Normalize backslashes to forward slashes
+  const normalized = trimmed.replace(/\\/g, "/");
 
+  // Return as-is for absolute URLs and data URIs
   if (
-    normalizedSlashes.startsWith("http://")
-    || normalizedSlashes.startsWith("https://")
-    || normalizedSlashes.startsWith("blob:")
-    || normalizedSlashes.startsWith("data:")
+    normalized.startsWith("http://")
+    || normalized.startsWith("https://")
+    || normalized.startsWith("blob:")
+    || normalized.startsWith("data:")
   ) {
-    return normalizedSlashes;
+    return normalized;
   }
 
-  const withoutDotPrefix = normalizedSlashes.replace(/^\.\//, "");
+  // Remove ./ and public/ prefixes
+  const withoutDotPrefix = normalized.replace(/^\.\//, "");
   const withoutPublicPrefix = withoutDotPrefix.replace(/^public\//, "");
-  const withLeadingSlash = withoutPublicPrefix.startsWith("/")
+
+  // Ensure leading slash and normalize multiple slashes
+  const path = withoutPublicPrefix.startsWith("/")
     ? withoutPublicPrefix
     : `/${withoutPublicPrefix}`;
 
-  return withLeadingSlash.replace(/^\/+/, "/");
+  return path.replace(/^\/+/, "/");
 }
