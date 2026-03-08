@@ -163,15 +163,15 @@ export default function CartSidebar() {
                   <div className="space-y-3">
                     <div className="space-y-1">
                       <label className="text-xs font-semibold uppercase opacity-60">Ім&apos;я <span className="text-primary">*</span></label>
-                      <Input name="name" placeholder="Олег" value={formData.name} onChange={handleChange} className={`h-10 bg-background/50 border-border/50 focus:border-primary transition-colors ${errors.name ? "border-destructive" : ""}`} />
+                      <Input name="name" value={formData.name} onChange={handleChange} className={`h-10 bg-background/50 border-border/50 focus:border-primary transition-colors ${errors.name ? "border-destructive" : ""}`} />
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs font-semibold uppercase opacity-60">Адреса доставки <span className="text-primary">*</span></label>
-                      <Input name="address" placeholder="вулиця, буд..." value={formData.address} onChange={handleChange} className={`h-10 bg-background/50 border-border/50 focus:border-primary transition-colors ${errors.address ? "border-destructive" : ""}`} />
+                      <Input name="address" value={formData.address} onChange={handleChange} className={`h-10 bg-background/50 border-border/50 focus:border-primary transition-colors ${errors.address ? "border-destructive" : ""}`} />
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs font-semibold uppercase opacity-60">Коментар</label>
-                      <Textarea name="comment" placeholder="Додаткові побажання..." value={formData.comment} onChange={handleChange} className="bg-background/50 border-border/50 focus:border-primary transition-colors resize-none h-20 text-sm" />
+                      <Textarea name="comment" value={formData.comment} onChange={handleChange} className="bg-background/50 border-border/50 focus:border-primary transition-colors resize-none h-20 text-sm" />
                     </div>
                   </div>
                 </div>
