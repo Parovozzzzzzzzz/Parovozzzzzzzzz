@@ -26,6 +26,7 @@ import {
 import { toast } from "sonner";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { normalizeImageSrc } from "@/lib/utils";
 
 export default function AdminDashboard() {
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -342,7 +343,7 @@ export default function AdminDashboard() {
                         {(localImagePreview || formData.image) && (
                           <div className="relative w-full h-40 rounded-lg overflow-hidden border border-border/50 bg-muted/20">
                             <Image
-                              src={localImagePreview || formData.image || "/next.svg"}
+                              src={localImagePreview || normalizeImageSrc(formData.image || "")}
                               alt="Попередній перегляд"
                               fill
                               className="object-cover"
@@ -403,7 +404,7 @@ export default function AdminDashboard() {
               <Card key={item.id} className="border-border/50 group hover:border-primary/20 transition-all overflow-hidden bg-card/30">
                 <CardContent className="p-4 flex gap-4">
                   <div className="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 border border-border/50">
-                    <Image src={item.image} alt={item.name} fill className="object-cover" unoptimized />
+                    <Image src={normalizeImageSrc(item.image)} alt={item.name} fill className="object-cover" unoptimized />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
