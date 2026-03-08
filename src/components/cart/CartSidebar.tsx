@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { fetchSettings } from "@/lib/data";
+import { normalizeImageSrc } from "@/lib/utils";
 
 interface FieldErrors {
   name?: string;
@@ -137,7 +138,7 @@ export default function CartSidebar() {
                   {items.map((item) => (
                     <div key={item.id} className="flex gap-4 items-center bg-background/50 p-2 rounded-xl border border-border/30">
                       <div className="relative w-14 h-14 rounded-lg overflow-hidden shrink-0">
-                        <Image src={item.image} alt={item.name} fill className="object-cover" unoptimized />
+                        <Image src={normalizeImageSrc(item.image)} alt={item.name} fill className="object-cover" unoptimized />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-bold text-xs truncate uppercase tracking-tight">{item.name}</h4>
@@ -163,7 +164,7 @@ export default function CartSidebar() {
                   <div className="space-y-3">
                     <div className="space-y-1">
                       <label className="text-xs font-semibold uppercase opacity-60">Ім&apos;я <span className="text-primary">*</span></label>
-                      <Input name="name" placeholder="Олег" value={formData.name} onChange={handleChange} className={`h-10 bg-background/50 border-border/50 focus:border-primary transition-colors ${errors.name ? "border-destructive" : ""}`} />
+                      <Input name="name" placeholder="Введіть ім'я" value={formData.name} onChange={handleChange} className={`h-10 bg-background/50 border-border/50 focus:border-primary transition-colors ${errors.name ? "border-destructive" : ""}`} />
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs font-semibold uppercase opacity-60">Адреса доставки <span className="text-primary">*</span></label>
