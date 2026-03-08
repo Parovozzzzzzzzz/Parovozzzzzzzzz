@@ -104,6 +104,9 @@ export default function AdminDashboard() {
   };
 
   const handleImageUpload = async (file: File) => {
+    if (localImagePreview) {
+      URL.revokeObjectURL(localImagePreview);
+    }
     const previewUrl = URL.createObjectURL(file);
     setLocalImagePreview(previewUrl);
     setImageUploading(true);
