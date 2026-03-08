@@ -49,8 +49,7 @@ export async function fetchMenu(): Promise<MenuItem[]> {
     if (!res.ok) throw new Error("Failed to fetch menu");
     const data = await res.json();
     return data.items || [];
-  } catch (error) {
-    console.error(error);
+  } catch {
     return DEFAULT_MENU_ITEMS;
   }
 }
@@ -61,8 +60,7 @@ export async function fetchSettings(): Promise<{ phoneNumber: string }> {
     if (!res.ok) throw new Error("Failed to fetch settings");
     const data = await res.json();
     return data.settings || { phoneNumber: "380934843757" };
-  } catch (error) {
-    console.error(error);
+  } catch {
     return { phoneNumber: "380934843757" };
   }
 }

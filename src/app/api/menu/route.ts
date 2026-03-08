@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     await writeMenuData(data);
 
     return NextResponse.json(newItem, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 }
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const updatedItem = await request.json();
-    let data = await readMenuData();
+    const data = await readMenuData();
 
     const index = data.items.findIndex((item) => item.id === updatedItem.id);
     if (index === -1) {
@@ -72,7 +72,7 @@ export async function PUT(request: Request) {
     await writeMenuData(data);
 
     return NextResponse.json(updatedItem);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 }
@@ -80,7 +80,7 @@ export async function PUT(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const { id } = await request.json();
-    let data = await readMenuData();
+    const data = await readMenuData();
 
     const filteredItems = data.items.filter((item) => item.id !== id);
     if (filteredItems.length === data.items.length) {
@@ -90,7 +90,7 @@ export async function DELETE(request: Request) {
     data.items = filteredItems;
     await writeMenuData(data);
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 }

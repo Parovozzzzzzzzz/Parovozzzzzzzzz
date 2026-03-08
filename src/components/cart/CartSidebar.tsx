@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useCartStore } from "@/store/cart";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Minus, Plus, Trash2, MessageCircle, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ShoppingCart, Minus, Plus, Trash2, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MenuItem, CATEGORIES, Category, fetchMenu } from "@/lib/data";
+import { MenuItem, CATEGORIES, fetchMenu } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,7 +16,6 @@ import {
   Settings2,
   Package,
   Loader2,
-  Image as ImageIcon,
   CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
