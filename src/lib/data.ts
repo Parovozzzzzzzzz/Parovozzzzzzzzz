@@ -55,13 +55,48 @@ export async function fetchMenu(): Promise<MenuItem[]> {
 }
 
 export async function fetchSettings(): Promise<{ phoneNumber: string }> {
+  const settings = await fetchSiteSettings();
+  return { phoneNumber: settings.phoneNumber };
+}
+
+export function formatPhoneNumber(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length < 7) return raw;
+  if (digits.length >= 12) {
+    return `+${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5, 8)} ${digits.slice(8)}`;
+  }
+  return `+${digits}`;
+}
+
+export interface SiteSettings {
+  phoneNumber: string;
+  menuVersion?: string;
+}
+
+export async function fetchSiteSettings(): Promise<SiteSettings> {
   try {
     const res = await fetch("/api/menu", { cache: "no-store" });
     if (!res.ok) throw new Error("Failed to fetch settings");
     const data = await res.json();
-    return data.settings || { phoneNumber: "380934843757" };
+    return data.settings || { phoneNumber: "380934843757", menuVersion: "0" };
   } catch {
-    return { phoneNumber: "380934843757" };
+    return { phoneNumber: "380934843757", menuVersion: "0" };
+  }
+}
+
+export const MENU_REFRESH_STORAGE_KEY = "menu_force_refresh";
+export const MENU_REFRESH_CHANNEL_NAME = "menu-updates";
+export const MENU_REFRESH_EVENT = "force-refresh";
+
+export function notifyMenuForceRefresh(menuVersion: string) {
+  if (typeof window === "undefined") return;
+
+  localStorage.setItem(MENU_REFRESH_STORAGE_KEY, menuVersion);
+
+  if ("BroadcastChannel" in window) {
+    const channel = new BroadcastChannel(MENU_REFRESH_CHANNEL_NAME);
+    channel.postMessage({ type: MENU_REFRESH_EVENT, menuVersion });
+    channel.close();
   }
 }
 

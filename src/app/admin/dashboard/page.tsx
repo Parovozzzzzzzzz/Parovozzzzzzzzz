@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MenuItem, CATEGORIES, fetchMenu } from "@/lib/data";
+import {
+  CATEGORIES,
+  notifyMenuForceRefresh,
+  MenuItem,
+  fetchMenu,
+} from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,6 +45,8 @@ export default function AdminDashboard() {
   const [settings, setSettings] = useState({ phoneNumber: "" });
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
+  const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
+  const [forceRefreshing, setForceRefreshing] = useState(false);
 
   useEffect(() => {
     const auth = document.cookie
@@ -54,6 +61,14 @@ export default function AdminDashboard() {
       loadSettings();
     }
   }, [router]);
+
+  useEffect(() => {
+    return () => {
+      if (localImagePreview) {
+        URL.revokeObjectURL(localImagePreview);
+      }
+    };
+  }, [localImagePreview]);
 
   const loadData = async () => {
     setLoading(true);
@@ -89,6 +104,11 @@ export default function AdminDashboard() {
   };
 
   const handleImageUpload = async (file: File) => {
+    if (localImagePreview) {
+      URL.revokeObjectURL(localImagePreview);
+    }
+    const previewUrl = URL.createObjectURL(file);
+    setLocalImagePreview(previewUrl);
     setImageUploading(true);
     try {
       const formDataUpload = new FormData();
@@ -108,6 +128,28 @@ export default function AdminDashboard() {
       toast.error("Не вдалося завантажити фото");
     } finally {
       setImageUploading(false);
+    }
+  };
+
+  const handleForceRefresh = async () => {
+    setForceRefreshing(true);
+    try {
+      const menuVersion = Date.now().toString();
+      const res = await fetch("/api/menu", {
+        method: "POST",
+        body: JSON.stringify({ settings: { menuVersion } }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!res.ok) throw new Error("Failed to force refresh");
+
+      notifyMenuForceRefresh(menuVersion);
+
+      toast.success("Сигнал оновлення меню відправлено на головний сайт");
+    } catch {
+      toast.error("Не вдалося примусово оновити меню");
+    } finally {
+      setForceRefreshing(false);
     }
   };
 
@@ -132,6 +174,7 @@ export default function AdminDashboard() {
         setIsEditing(null);
         setIsAdding(false);
         setFormData({ name: "", description: "", price: 0, image: "", category: "Роли" });
+        setLocalImagePreview(null);
         loadData();
       }
     } catch {
@@ -168,6 +211,7 @@ export default function AdminDashboard() {
   const startEdit = (item: MenuItem) => {
     setIsEditing(item);
     setFormData(item);
+    setLocalImagePreview(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -237,7 +281,7 @@ export default function AdminDashboard() {
               <Card className="border-primary/50 shadow-2xl bg-card">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="text-2xl font-black">{isEditing ? "Редагувати" : "Додати нову позицію"}</CardTitle>
-                  <Button variant="ghost" className="text-muted-foreground" onClick={() => { setIsEditing(null); setIsAdding(false); }}>Скасувати</Button>
+                  <Button variant="ghost" className="text-muted-foreground" onClick={() => { setIsEditing(null); setIsAdding(false); setLocalImagePreview(null); }}>Скасувати</Button>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSave} className="grid md:grid-cols-2 gap-8">
@@ -279,7 +323,7 @@ export default function AdminDashboard() {
                         <label className="text-sm font-semibold">Фото страви</label>
                         <Input
                           type="file"
-                          accept="image/*"
+                          accept="image/png,image/jpeg,image/webp,image/gif"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) handleImageUpload(file);
@@ -295,10 +339,21 @@ export default function AdminDashboard() {
                           placeholder="https://... або /uploads/..."
                           required
                         />
+                        {(localImagePreview || formData.image) && (
+                          <div className="relative w-full h-40 rounded-lg overflow-hidden border border-border/50 bg-muted/20">
+                            <Image
+                              src={localImagePreview || formData.image || "/next.svg"}
+                              alt="Попередній перегляд"
+                              fill
+                              className="object-cover"
+                              unoptimized
+                            />
+                          </div>
+                        )}
                       </div>
-                      <Button type="submit" className="w-full h-12 text-lg font-bold gap-2 mt-4 shadow-lg shadow-primary/20">
+                      <Button type="submit" disabled={imageUploading} className="w-full h-12 text-lg font-bold gap-2 mt-4 shadow-lg shadow-primary/20">
                         {isEditing ? <CheckCircle2 className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-                        {isEditing ? "Зберегти" : "Додати в меню"}
+                        {imageUploading ? "Завантаження фото..." : isEditing ? "Зберегти" : "Додати в меню"}
                       </Button>
                     </div>
                   </form>
@@ -319,10 +374,21 @@ export default function AdminDashboard() {
                 <p className="text-muted-foreground text-sm">{items.length} позицій у списку</p>
               </div>
             </div>
-            <Button onClick={() => setIsAdding(true)} className="h-12 px-6 rounded-xl font-bold gap-2">
-              <Plus className="w-5 h-5" />
-              Нова страва
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                onClick={handleForceRefresh}
+                disabled={forceRefreshing}
+                className="h-12 px-6 rounded-xl font-bold gap-2"
+              >
+                <Loader2 className={`w-5 h-5 ${forceRefreshing ? "animate-spin" : ""}`} />
+                {forceRefreshing ? "Оновлення..." : "Оновити меню на сайті"}
+              </Button>
+              <Button onClick={() => setIsAdding(true)} className="h-12 px-6 rounded-xl font-bold gap-2">
+                <Plus className="w-5 h-5" />
+                Нова страва
+              </Button>
+            </div>
           </div>
         )}
 
@@ -337,7 +403,7 @@ export default function AdminDashboard() {
               <Card key={item.id} className="border-border/50 group hover:border-primary/20 transition-all overflow-hidden bg-card/30">
                 <CardContent className="p-4 flex gap-4">
                   <div className="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 border border-border/50">
-                    <Image src={item.image} alt={item.name} fill className="object-cover" />
+                    <Image src={item.image} alt={item.name} fill className="object-cover" unoptimized />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">

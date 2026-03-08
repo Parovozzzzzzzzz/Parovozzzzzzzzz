@@ -2,12 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CATEGORIES, Category, MenuItem, fetchMenu } from "@/lib/data";
+import {
+  CATEGORIES,
+  Category,
+  MENU_REFRESH_CHANNEL_NAME,
+  MENU_REFRESH_EVENT,
+  MENU_REFRESH_STORAGE_KEY,
+  MenuItem,
+  fetchMenu,
+} from "@/lib/data";
 import { useCartStore } from "@/store/cart";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Minus, ShoppingCart } from "lucide-react";
 import Image from "next/image";
+
+const FORCE_REFRESH_POLL_MS = 30000;
 
 function DishCard({ item }: { item: MenuItem }) {
   const [qty, setQty] = useState(1);
@@ -36,6 +46,7 @@ function DishCard({ item }: { item: MenuItem }) {
           alt={item.name}
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-500"
+          unoptimized
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-card/80 via-transparent to-transparent" />
@@ -109,18 +120,38 @@ export default function Menu() {
       setLoading(false);
     };
 
-    loadMenu();
-    const interval = setInterval(loadMenu, 30000);
-
     const onVisibility = () => {
       if (!document.hidden) loadMenu();
     };
+
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === MENU_REFRESH_STORAGE_KEY) {
+        loadMenu();
+      }
+    };
+
+    let channel: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      channel = new BroadcastChannel(MENU_REFRESH_CHANNEL_NAME);
+      channel.onmessage = (event) => {
+        if (event.data?.type === MENU_REFRESH_EVENT) {
+          loadMenu();
+        }
+      };
+    }
+
+    loadMenu();
+    const interval = setInterval(loadMenu, FORCE_REFRESH_POLL_MS);
+
     document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("storage", onStorage);
 
     return () => {
       alive = false;
       clearInterval(interval);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("storage", onStorage);
+      channel?.close();
     };
   }, []);
 
