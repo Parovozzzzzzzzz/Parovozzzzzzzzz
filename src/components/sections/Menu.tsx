@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Minus, ShoppingCart } from "lucide-react";
 import Image from "next/image";
+import { normalizeImageSrc } from "@/lib/utils";
 
 const FORCE_REFRESH_POLL_MS = 30000;
 
@@ -43,7 +44,7 @@ function DishCard({ item }: { item: MenuItem }) {
     >
       <div className="relative h-52 overflow-hidden">
         <Image
-          src={item.image}
+          src={normalizeImageSrc(item.image)}
           alt={item.name}
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-500"
