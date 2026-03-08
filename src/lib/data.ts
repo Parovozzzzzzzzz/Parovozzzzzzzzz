@@ -87,3 +87,15 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
 export const MENU_REFRESH_STORAGE_KEY = "menu_force_refresh";
 export const MENU_REFRESH_CHANNEL_NAME = "menu-updates";
 export const MENU_REFRESH_EVENT = "force-refresh";
+
+export function notifyMenuForceRefresh(menuVersion: string) {
+  if (typeof window === "undefined") return;
+
+  localStorage.setItem(MENU_REFRESH_STORAGE_KEY, menuVersion);
+
+  if ("BroadcastChannel" in window) {
+    const channel = new BroadcastChannel(MENU_REFRESH_CHANNEL_NAME);
+    channel.postMessage({ type: MENU_REFRESH_EVENT, menuVersion });
+    channel.close();
+  }
+}

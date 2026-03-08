@@ -17,6 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Minus, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 
+const FORCE_REFRESH_POLL_MS = 30000;
+
 function DishCard({ item }: { item: MenuItem }) {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
@@ -139,7 +141,7 @@ export default function Menu() {
     }
 
     loadMenu();
-    const interval = setInterval(loadMenu, 30000);
+    const interval = setInterval(loadMenu, FORCE_REFRESH_POLL_MS);
 
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("storage", onStorage);

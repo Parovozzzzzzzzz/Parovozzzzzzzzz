@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   CATEGORIES,
-  MENU_REFRESH_CHANNEL_NAME,
-  MENU_REFRESH_EVENT,
-  MENU_REFRESH_STORAGE_KEY,
+  notifyMenuForceRefresh,
   MenuItem,
   fetchMenu,
 } from "@/lib/data";
@@ -63,6 +61,14 @@ export default function AdminDashboard() {
       loadSettings();
     }
   }, [router]);
+
+  useEffect(() => {
+    return () => {
+      if (localImagePreview) {
+        URL.revokeObjectURL(localImagePreview);
+      }
+    };
+  }, [localImagePreview]);
 
   const loadData = async () => {
     setLoading(true);
@@ -134,14 +140,7 @@ export default function AdminDashboard() {
 
       if (!res.ok) throw new Error("Failed to force refresh");
 
-      if (typeof window !== "undefined") {
-        localStorage.setItem(MENU_REFRESH_STORAGE_KEY, menuVersion);
-        if ("BroadcastChannel" in window) {
-          const channel = new BroadcastChannel(MENU_REFRESH_CHANNEL_NAME);
-          channel.postMessage({ type: MENU_REFRESH_EVENT, menuVersion });
-          channel.close();
-        }
-      }
+      notifyMenuForceRefresh(menuVersion);
 
       toast.success("Сигнал оновлення меню відправлено на головний сайт");
     } catch {

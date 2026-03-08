@@ -41,7 +41,7 @@ export async function POST(request: Request) {
 
     await fs.writeFile(filePath, buffer);
 
-    return NextResponse.json({ url: `/uploads/${filename}` });
+    return NextResponse.json({ url: `/uploads/${filename}` }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Помилка завантаження" }, { status: 500 });
   }
