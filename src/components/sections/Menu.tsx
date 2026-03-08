@@ -10,6 +10,7 @@ import {
   MENU_REFRESH_STORAGE_KEY,
   MenuItem,
   fetchMenu,
+  tryFetchMenu,
 } from "@/lib/data";
 import { useCartStore } from "@/store/cart";
 import { Button } from "@/components/ui/button";
@@ -113,20 +114,26 @@ export default function Menu() {
   useEffect(() => {
     let alive = true;
 
-    const loadMenu = async () => {
+    const loadInitialMenu = async () => {
       const data = await fetchMenu();
       if (!alive) return;
       setMenuItems(data);
       setLoading(false);
     };
 
+    const refreshMenu = async () => {
+      const data = await tryFetchMenu();
+      if (!alive || !data) return;
+      setMenuItems(data);
+    };
+
     const onVisibility = () => {
-      if (!document.hidden) loadMenu();
+      if (!document.hidden) refreshMenu();
     };
 
     const onStorage = (event: StorageEvent) => {
       if (event.key === MENU_REFRESH_STORAGE_KEY) {
-        loadMenu();
+        refreshMenu();
       }
     };
 
@@ -135,13 +142,13 @@ export default function Menu() {
       channel = new BroadcastChannel(MENU_REFRESH_CHANNEL_NAME);
       channel.onmessage = (event) => {
         if (event.data?.type === MENU_REFRESH_EVENT) {
-          loadMenu();
+          refreshMenu();
         }
       };
     }
 
-    loadMenu();
-    const interval = setInterval(loadMenu, FORCE_REFRESH_POLL_MS);
+    loadInitialMenu();
+    const interval = setInterval(refreshMenu, FORCE_REFRESH_POLL_MS);
 
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("storage", onStorage);
