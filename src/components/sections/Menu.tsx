@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CATEGORIES, Category, MenuItem, fetchMenu } from "@/lib/data";
+import {
+  CATEGORIES,
+  Category,
+  MENU_REFRESH_CHANNEL_NAME,
+  MENU_REFRESH_EVENT,
+  MENU_REFRESH_STORAGE_KEY,
+  MenuItem,
+  fetchMenu,
+} from "@/lib/data";
 import { useCartStore } from "@/store/cart";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +44,7 @@ function DishCard({ item }: { item: MenuItem }) {
           alt={item.name}
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-500"
+          unoptimized
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-card/80 via-transparent to-transparent" />
@@ -49,7 +58,7 @@ function DishCard({ item }: { item: MenuItem }) {
         <p className="text-muted-foreground text-sm mb-4 flex-1 leading-relaxed">{item.description}</p>
 
         <div className="flex items-center justify-between mt-auto">
-          <span className="text-primary font-black text-2xl">{item.price} грн</span>
+          <span className="text-primary font-black text-2xl">{item.price} €</span>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 border border-border rounded-full p-0.5">
               <button
@@ -100,12 +109,48 @@ export default function Menu() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let alive = true;
+
     const loadMenu = async () => {
       const data = await fetchMenu();
+      if (!alive) return;
       setMenuItems(data);
       setLoading(false);
     };
+
+    const onVisibility = () => {
+      if (!document.hidden) loadMenu();
+    };
+
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === MENU_REFRESH_STORAGE_KEY) {
+        loadMenu();
+      }
+    };
+
+    let channel: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      channel = new BroadcastChannel(MENU_REFRESH_CHANNEL_NAME);
+      channel.onmessage = (event) => {
+        if (event.data?.type === MENU_REFRESH_EVENT) {
+          loadMenu();
+        }
+      };
+    }
+
     loadMenu();
+    const interval = setInterval(loadMenu, 30000);
+
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      alive = false;
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("storage", onStorage);
+      channel?.close();
+    };
   }, []);
 
   const filtered = menuItems.filter((i) => i.category === activeCategory);

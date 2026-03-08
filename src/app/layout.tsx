@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SushiMAMA — доставка суші Берлін",
-  description: "Найкращі роли та сети в Берліні. Швидка доставка, преміум якість.",
+  title: "SushiMAMA — доставка суші Франкфурт-на-Одері",
+  description: "Найкращі роли та сети у Франкфурті-на-Одері. Швидка доставка, преміум якість.",
   keywords: ["суші", "доставка суші", "sushi berlin", "антигравітація суші"],
 };
 
