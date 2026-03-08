@@ -39,6 +39,7 @@ export default function AdminDashboard() {
 
   const [settings, setSettings] = useState({ phoneNumber: "" });
   const [settingsLoading, setSettingsLoading] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
 
   useEffect(() => {
     const auth = document.cookie
@@ -84,6 +85,29 @@ export default function AdminDashboard() {
       toast.error("Помилка збереження налаштувань");
     } finally {
       setSettingsLoading(false);
+    }
+  };
+
+  const handleImageUpload = async (file: File) => {
+    setImageUploading(true);
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formDataUpload,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+
+      setFormData((prev) => ({ ...prev, image: data.url }));
+      toast.success("Фото завантажено!");
+    } catch {
+      toast.error("Не вдалося завантажити фото");
+    } finally {
+      setImageUploading(false);
     }
   };
 
@@ -252,8 +276,25 @@ export default function AdminDashboard() {
                         <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} required className="h-[76px]" />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-semibold">Посилання на фото</label>
-                        <Input value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} placeholder="https://unsplash..." required />
+                        <label className="text-sm font-semibold">Фото страви</label>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleImageUpload(file);
+                          }}
+                          disabled={imageUploading}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          {imageUploading ? "Завантаження фото..." : "Або вставте пряме посилання на фото нижче"}
+                        </p>
+                        <Input
+                          value={formData.image}
+                          onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                          placeholder="https://... або /uploads/..."
+                          required
+                        />
                       </div>
                       <Button type="submit" className="w-full h-12 text-lg font-bold gap-2 mt-4 shadow-lg shadow-primary/20">
                         {isEditing ? <CheckCircle2 className="w-5 h-5" /> : <Plus className="w-5 h-5" />}

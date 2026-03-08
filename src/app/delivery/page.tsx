@@ -2,7 +2,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Умови доставки | SushiMAMA",
-  description: "Інформація про умови та вартість доставки суші в Берліні від SushiMAMA.",
+  description: "Інформація про умови та вартість доставки суші у Франкфурті-на-Одері від SushiMAMA.",
 };
 
 export default function DeliveryPage() {
@@ -28,7 +28,7 @@ export default function DeliveryPage() {
             {
               icon: "🗺️",
               title: "Зона доставки",
-              text: "Доставляємо по всьому Берліну та найближчих районах міста.",
+              text: "Доставляємо по всьому Франкфурту-на-Одері та найближчих районах міста.",
             },
             {
               icon: "💶",

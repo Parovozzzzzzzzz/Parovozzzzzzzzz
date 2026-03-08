@@ -64,3 +64,12 @@ export async function fetchSettings(): Promise<{ phoneNumber: string }> {
     return { phoneNumber: "380934843757" };
   }
 }
+
+export function formatPhoneNumber(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length < 7) return raw;
+  if (digits.length >= 12) {
+    return `+${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5, 8)} ${digits.slice(8)}`;
+  }
+  return `+${digits}`;
+}
