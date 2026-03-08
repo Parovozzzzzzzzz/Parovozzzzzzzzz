@@ -54,6 +54,17 @@ export async function fetchMenu(): Promise<MenuItem[]> {
   }
 }
 
+export async function tryFetchMenu(): Promise<MenuItem[] | null> {
+  try {
+    const res = await fetch("/api/menu", { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to fetch menu");
+    const data = await res.json();
+    return data.items || [];
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchSettings(): Promise<{ phoneNumber: string }> {
   const settings = await fetchSiteSettings();
   return { phoneNumber: settings.phoneNumber };
@@ -98,4 +109,13 @@ export function notifyMenuForceRefresh(menuVersion: string) {
     channel.postMessage({ type: MENU_REFRESH_EVENT, menuVersion });
     channel.close();
   }
+}
+
+export function formatPhoneNumber(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length < 7) return raw;
+  if (digits.length >= 12) {
+    return `+${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5, 8)} ${digits.slice(8)}`;
+  }
+  return `+${digits}`;
 }
